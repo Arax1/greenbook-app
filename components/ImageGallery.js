@@ -42,6 +42,7 @@ export default function (props) {
         } else {
             console.log('no imageRef')
         }
+        setSelectedId(obj.index);
     }
 
     let config = {
@@ -174,7 +175,6 @@ export default function (props) {
                     <View style={styles.thumbnailImages}>
                         <TouchableOpacity onPress={e => {
                             scrollToIndexImage({ animated: true, index: index }, images.length)
-                            setSelectedId(index);
                         }}>
                             <Hover>
                                 <ImageBackground source={{ uri: item.url + '&w=400' }} style={
