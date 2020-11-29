@@ -1,16 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import { useStateValue } from "../components/State";
-import { StyleSheet, View, ScrollView, FlatList, Text, Button, SGBButton, Image, ImageBackground, ActivityIndicator, TouchableOpacity} from 'react-native';
+import { StyleSheet, View, ScrollView, FlatList, Text, Button, SGBButton, Image, ImageBackground, ActivityIndicator, TouchableOpacity, Linking} from 'react-native';
 import { Link } from "../components/Link"; 
 import { ResponsiveImage } from "../components/ResponsiveImage"; 
 import RichText from "../components/RichText"; 
 import { getStyles, Theme, getData, GridWidth } from '../utils';
+import { parseAddress } from '../utils/cityState';
 import { Entypo } from '@expo/vector-icons'; 
 import Search from "../components/Search";
 import SGBMap from "../components/SGBMap";
 import { getInstagram } from '../utils/getData';
 import { handleRootClick } from '../utils/rootClickHandler';
 import { Fontisto } from '@expo/vector-icons'; 
+import { useRouter } from 'next/router';
 
 let currentIndexListing = 0;
 const viewableItemsChangedListing = ({ viewableItems, changed }) => {
@@ -25,7 +27,6 @@ const viewableItemsChangedConfigListing = {
 function Page(props) {
 
     const [{ view, isWeb, dimensions }, dispatch] = useStateValue();
-    const styles = StyleSheet.create(getStyles('middle_all, text_hero, text_header, text_header2, text_header3, text_header4, text_body, text_quote, section, content, footer', {isWeb}));
 
     const [ loadingPress, setLoadingPress ] = useState(!props.press);
     const [ errorPress, setErrorPress ] = useState('');
@@ -41,6 +42,8 @@ function Page(props) {
     const [ loadingListings, setLoadingListings ] = useState(!props.listings);
     const [ errorListings, setErrorListings ] = useState('');
     const [ Listings, setListings ] = useState(props.listings || []);
+
+    const router = useRouter();
 
     useEffect( () => {
 
@@ -102,6 +105,16 @@ function Page(props) {
         }
     }
 
+    const handlePress = ({ href, navigate }) => {
+        
+        if(isWeb) {
+            router.push(href);
+        } else if (navigate) {
+            props.navigation.navigate(navigate);
+        }
+
+    }
+
     return (
         <TouchableOpacity activeOpacity={1} style={{ cursor: 'default' }} onPress={e => handleRootClick(e)}>
             <View>
@@ -114,7 +127,7 @@ function Page(props) {
                                 Businesses
                             </Text>
                             <View style={{ marginTop: 40 }}>
-                                <Search includeUseLocationOption />
+                                <Search includeUseLocationOption navigation={props.navigation} />
                             </View>
                         </View>
                     </ImageBackground>
@@ -160,7 +173,11 @@ function Page(props) {
                                     We are establishing a space for people who seek to create change, and creating a platform for 
                                     them to invest in Black business owners in their communities.
                                 </Text>
-                                <Link href="/about" to="About" navigation={props.navigation} style={{marginTop: 40}} button={'button_green'} title="Learn More" />
+                                <Link href="/about" contain onPress={() => props.navigation.navigate('About')} >
+                                     <View style={[styles.button_green, { marginTop: 40 }]} >    
+                                        <Text style={[styles.button_green_text]}>Learn More</Text>
+                                     </View>
+                                </Link>
                             </View>
                         </View>
                     </View>
@@ -191,31 +208,51 @@ function Page(props) {
                                 ref={(ref) => { newListingRef = ref; }}
                                 onViewableItemsChanged={viewableItemsChangedListing}
                                 viewabilityConfig={viewableItemsChangedConfigListing}
-                                renderItem={({ item, index, separators }) => (
-                                    <View>
-                                        <ImageBackground source={{uri: item.images[0].image.url}} style={{width: dimensions.width, height: 700}}>
-                                        </ImageBackground>
-                                        <View style={{
-                                            position: 'absolute', left: 0, top: 0, bottom: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', paddingTop: 80, paddingBottom: 80, paddingLeft: 20, paddingRight: 20,
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <View style={{flex: 2}}>
-                                                <Text style={[styles.text_header3, {color: '#fff'}]}>
-                                                    NEW LISTING
-                                                </Text>
-                                            </View>
-                                            <View style={{flex: 1, height: 200}}>
-                                            </View>
-                                            <View style={{flex: 2}}>
-                                                <Text accessibilityRole="header" aria-level="3" style={[styles.text_header2, {color: '#fff'}]}>
-                                                    {item.name}
-                                                </Text>
-                                                <Link button={'button_white'} title={'Learn More'} href={'/biz/' + item.uid} to="Listing" navigation={props.navigation} style={{marginTop: 40}}/>
+                                renderItem={({ item, index, separators }) => {
+                                    const address = item.address && item.address[0];
+                                    const parsedAddress = address ? parseAddress(address) : null;
+
+                                    return (
+                                        <View>
+                                            <ImageBackground source={{uri: item.images[0].image.url}} style={{width: dimensions.width, height: 700}}>
+                                            </ImageBackground>
+                                            <View style={{
+                                                position: 'absolute', left: 0, top: 0, bottom: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', paddingTop: 80, paddingBottom: 80, paddingLeft: 20, paddingRight: 20,
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between'
+                                            }}>
+                                                <View style={{flex: 2}}>
+                                                    <Text style={[styles.text_header3, {color: '#fff'}]}>
+                                                        NEW LISTING
+                                                    </Text>
+                                                </View>
+                                                <View style={{flex: 1, height: 200}}>
+                                                </View>
+                                                <View style={{flex: 2}}>
+                                                    <Text accessibilityRole="header" aria-level="3" style={[styles.text_header2, {color: '#fff'}]}>
+                                                        {item.name}
+                                                    </Text>
+                                                    {parsedAddress ? (
+                                                        <Text style={[styles.text_header3, {color: '#fff'}]}>
+                                                            {parsedAddress.city}, {parsedAddress.state}
+                                                        </Text>
+                                                    ) : null}
+                                                    <Link href='/biz/[name]' as={`/biz/${item.uid}`}
+                                                    contain
+                                                    onPress={() => {
+                                                        dispatch({type: 'setView', view: '/biz/' + item.uid});
+                                                        props.navigation.navigate('Listing');
+                                                    }}>
+                                                        
+                                                    <View style={[styles.button_white, { marginTop: 40}]} >    
+                                                        <Text style={styles.button_white_text}>Learn More</Text>
+                                                     </View>
+                                                </Link>
+                                                </View>
                                             </View>
                                         </View>
-                                    </View>
-                                )}
+                                    );
+                                }}
                                 keyExtractor={(item, index) => 'listing' + index}
                             />
                             <View style={{position: 'absolute', top: '50%', marginTop: -100, left:10, right:10, height: 200, flex: 1}}>
@@ -286,7 +323,7 @@ function Page(props) {
 
                 <View style={[styles.section, {flex:1}]}>
                     <View style={[styles.content, {flex:1}]}>
-                        <Link href="https://instagram.com/spicygreenbook">
+                        <Link contain href='https://instagram.com/spicygreenbook'>
                             <Text accessibilityRole="header" aria-level="3" style={[styles.text_header3, {marginBottom: 20}]}>
                                 FOLLOW @SPICYGREENBOOK
                             </Text>
@@ -343,5 +380,7 @@ function Page(props) {
         </TouchableOpacity>
     );
 }
+
+const styles = StyleSheet.create( getStyles('middle_all, text_hero, button_green, button_white, button_white_text, button_green_text, text_header, text_header2, text_header3, text_header4, text_body, text_quote, section, content, footer'));
 
 export default Page;

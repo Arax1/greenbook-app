@@ -21,7 +21,6 @@ import Listing from '../screens/Listing';
 import Menu from '../components/Menu';
 import ImageGallery from '../components/ImageGallery';
 import { useStateValue } from "../components/State";
-import { useFonts } from 'expo-font';
 import { getStyles, getImage } from '../utils';
 import { Dimensions, Platform } from 'react-native';
 
@@ -30,7 +29,6 @@ function Main(props) {
   const [{ view, isWeb, theme, menuOpen, dimensions, lightbox, lightboxConfig }, dispatch] = useStateValue();
   const [isScrolled, setIsScrolled] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
-
 
   /* debug purposes figureing out dispatches causing rerender  
     useEffect(() => {
@@ -51,30 +49,6 @@ function Main(props) {
       dispatch({ type: 'setDimensions', value: set_to })
     }
   };
-
-  let fonts = {
-    'ApercuMedium': {
-      uri: require('../public/fonts/ApercuRegular.ttf'),
-      display: 'swap',
-    },
-    'ApercuLight': {
-      uri: require('../public/fonts/ApercuLight.ttf'),
-      display: 'swap',
-    },
-    'KnockoutBold': {
-      uri: require('../public/fonts/Knockout_HTF71-FullMiddlewt_Regular.otf'),
-      display: 'swap',
-    },
-    'KnockoutWelterWeight': {
-      uri: require('../public/fonts/Knockout_HTF50-Welterweight_Regular.otf'),
-      display: 'swap',
-    },
-    'KnockoutFeatherWeight': {
-      uri: require('../public/fonts/Knockout_HTF48-Featherweight_Regular.otf'),
-      display: 'swap',
-    }
-  };
-  const [fontsReady, fontsError] = useFonts(fonts);
 
   useEffect(() => {
     Dimensions.addEventListener("change", onChangeScreenSize);
@@ -119,11 +93,6 @@ function Main(props) {
     }, []);
   }
 
-  if (!isWeb && !fontsReady) {
-    console.log('render loading first');
-    return (<Text>Loading...</Text>)
-  }
-
   function renderContent(props) {
     return (
       view === '/about' ? <About {...props} />
@@ -136,7 +105,7 @@ function Main(props) {
                     : view === '/add' ? <AddListing {...props} />
                       : view === '/volunteer' ? <Volunteer {...props} />
                         : view === '/donate' ? <Donate {...props} />
-                          : view === '/search' ? <List {...props} />
+                          : view === '/search' || view.indexOf('/cities') > -1 ? <List {...props} />
                             : view.indexOf('/biz') === 0 ? <Listing {...props} />
                               : view === '/' ? <Home {...props} />
                                 : <NotFound {...props} />
