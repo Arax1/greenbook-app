@@ -55,13 +55,14 @@ function Page(props) {
     const heading1 = content._body.value.slice(0, 1);
     const paragraph1 = content._body.value.slice(1, 2);
 
-
-    console.log("BODY CHANGE", bodyChanged)
     let newtext = content._body.value[1].text;
     let n = newtext.indexOf("Maintaining");
-    newtext = newtext.substring(0, n) + "\n" + newtext.substring(n, newtext.length);
-    paragraph1[0].text = newtext;
-    console.log("BODY CHANGE", bodyChanged)
+    if (n == 344) {
+        newtext = newtext.substring(0, n) + "\n\n" + newtext.substring(n, newtext.length);
+        paragraph1[0].text = newtext;
+        console.log('CHANGED WENT THROUGH')
+    }
+
 
 
 
