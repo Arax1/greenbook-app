@@ -1,9 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { useStateValue } from "../components/State";
-import { StyleSheet, View, ScrollView, FlatList, Text, Button, SGBButton, Image, ImageBackground, ActivityIndicator, TouchableOpacity, Linking} from 'react-native';
+import { StyleSheet, View, FlatList, Text, Image, ImageBackground, ActivityIndicator, TouchableOpacity} from 'react-native';
 import { Link } from "../components/Link"; 
 import { ResponsiveImage } from "../components/ResponsiveImage"; 
-import RichText from "../components/RichText"; 
 import { getStyles, Theme, getData, GridWidth } from '../utils';
 import { parseAddress } from '../utils/cityState';
 import { Entypo } from '@expo/vector-icons'; 
@@ -12,7 +11,6 @@ import SGBMap from "../components/SGBMap";
 import { getInstagram } from '../utils/getData';
 import { handleRootClick } from '../utils/rootClickHandler';
 import { Fontisto } from '@expo/vector-icons'; 
-import { useRouter } from 'next/router';
 
 let currentIndexListing = 0;
 const viewableItemsChangedListing = ({ viewableItems, changed }) => {
@@ -26,7 +24,7 @@ const viewableItemsChangedConfigListing = {
 
 function Page(props) {
 
-    const [{ view, isWeb, dimensions }, dispatch] = useStateValue();
+    const [{ isWeb, dimensions }, dispatch] = useStateValue();
 
     const [ loadingPress, setLoadingPress ] = useState(!props.press);
     const [ errorPress, setErrorPress ] = useState('');
@@ -43,7 +41,7 @@ function Page(props) {
     const [ errorListings, setErrorListings ] = useState('');
     const [ Listings, setListings ] = useState(props.listings || []);
 
-    const router = useRouter();
+    const responsiveStyles = StyleSheet.create(getStyles('middle_all, text_hero'));
 
     useEffect( () => {
 
@@ -105,23 +103,13 @@ function Page(props) {
         }
     }
 
-    const handlePress = ({ href, navigate }) => {
-        
-        if(isWeb) {
-            router.push(href);
-        } else if (navigate) {
-            props.navigation.navigate(navigate);
-        }
-
-    }
-
     return (
         <TouchableOpacity activeOpacity={1} style={{ cursor: 'default' }} onPress={e => handleRootClick(e)}>
             <View>
                 <View style={{height: 700, backgroundColor: '#000'}}>
                     <ImageBackground source={require('../public/images/home_hero.png')} style={{height: 700}}>
-                        <View style={[styles.middle_all, { width: '100%', flex: 1, alignItems: 'stretch', padding: 20}]}>
-                            <Text accessibilityRole="header" aria-level="1"  style={styles.text_hero}>
+                        <View style={[responsiveStyles.middle_all, { width: '100%', flex: 1, alignItems: 'stretch', padding: 20}]}>
+                            <Text accessibilityRole="header" aria-level="1"  style={responsiveStyles.text_hero}>
                                 Support{"\n"}
                                 Black-Owned{"\n"}
                                 Businesses
@@ -193,17 +181,7 @@ function Page(props) {
                             <FlatList
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
-                                data={Listings.sort((a, b) => {
-                                        if (a.updated < b.updated) {
-                                            return 1;
-                                        }
-                                        if (a.updated > b.updated) {
-                                            return -1;
-                                        }
-                                        return 0;
-                                    }).slice(0,10).sort((a,b) => {
-                                        return a.time - b.time
-                                    }).filter(item => item.images && item.images[0] && item.images[0].image).slice(0,10)
+                                data={Listings.sort((a, b) => b.updated - a.updated).slice(0,10).sort((a, b) =>  a.time - b.time).filter(item => item.images && item.images[0] && item.images[0].image).slice(0,10)
                                 }
                                 ref={(ref) => { newListingRef = ref; }}
                                 onViewableItemsChanged={viewableItemsChangedListing}
@@ -381,6 +359,6 @@ function Page(props) {
     );
 }
 
-const styles = StyleSheet.create( getStyles('middle_all, text_hero, button_green, button_white, button_white_text, button_green_text, text_header, text_header2, text_header3, text_header4, text_body, text_quote, section, content, footer'));
+const styles = StyleSheet.create(getStyles('button_green, button_white, button_white_text, button_green_text, text_header, text_header2, text_header3, text_header4, text_body, text_quote, section, content, footer'));
 
 export default Page;
